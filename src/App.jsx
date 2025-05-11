@@ -1,69 +1,85 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from "react";
 
+function App() {
+  const [data, setData] = useState([]);
+  const [track, setTrack] = useState([]);
+  const [score, setScore] = useState(0);
+  const [highscore, sethighScore] = useState(0);
 
-function Pokemon() {
-  const [Pokemon,setpokemon] = useState(null)
-  const [poke,setpoke] = useState(null)
-  
+  const getRandomNumber = (max) => Math.floor(Math.random() * max);
 
-  useEffect(()=>{
-    fetch('https://rickandmortyapi.com/api/character')
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      setpokemon(data.results);   // Save array of Rick characters
-      
-    })
-  },[])
-  useEffect(()=>{
-    console.log(Pokemon);
-  },[Pokemon])
-  if (!Pokemon) return(
-    <div className='container'>Hi</div>
-  );
-  const getRandomPokemon = () => {
-    const shuffled = [...Pokemon].sort(() => 0.5 - Math.random()); // Shuffle array
-    setpoke(shuffled.slice(0, 6))
+  const get6random = (characters) => {
+    const randomCharacters = [];
+    const usedIndexes = new Set();
+
+    while (randomCharacters.length < 6) {
+      const randIndex = getRandomNumber(characters.length);
+      if (!usedIndexes.has(randIndex)) {
+        randomCharacters.push(characters[randIndex]);
+        usedIndexes.add(randIndex);
+      }
+    }
+
+    setData(randomCharacters);
   };
-  console.log(poke);
-  
-  
-  return(
 
-    
-    <>
-    
-     <div className="container">
-     {Pokemon.map((poke,index)=>{
-      return <div key={index} style={{
-         backgroundImage: `url(${poke.image})`,
-      }}>{poke.name}</div>
-    })}
-    </div>
+  const fetchCharacters = async () => {
+    try {
+      const res = await fetch('https://rickandmortyapi.com/api/character?page=1');
+      const json = await res.json();
+      const first20 = json.results.slice(0, 15); // Get only 20 characters
+      get6random(first20); // Pick 6 from them
+    } catch (err) {
+      console.error('Error fetching characters:', err);
+    }
+  };
 
-      {/* <div className="scores">
-         
+  useEffect(() => {
+    fetchCharacters();
+  }, []);
+
+ const handleClick = (e) => {
+  const clickedName = e.target.alt;
+
+  // If the character was not clicked before
+  if (!track.includes(clickedName)) {
+    // Update track and score in one go
+    setTrack((prev) => [...prev, clickedName]);
+    setScore((prev) => prev + 1);
+  } else {
+    // Reset if character was clicked before
+    setTrack([]);
+    setScore(0);
+    sethighScore(score)
+  }
+
+  // Refresh with new 6 characters
+  fetchCharacters();
+};
+useEffect(() => {
+  console.log("Updated track:", track);
+}, [track]);
+useEffect(()=>{
+  if (score > highscore) {
+    sethighScore(score)
+  }
+},[score])
+
+  return (
+    <div className="container">
+      <div className="scores">
+          <p className="score">Score: {score}</p>
+  <p className="highscore">High Score: {highscore}</p>
       </div>
       <div className="grids">
-        
-      {Pokemon.map((poke,index) => {
-        if (index === 6) {
-          return
-          
-        }
-        else{
-          index++;
-          return <div className='pok' key={poke.image}>{poke.name}</div>;
-        }
-        })}
-
-      </div> */}
-    {/* </div>  */}
-    </>
-  )
-  
+        {data.map((char, index) => (
+          <div className="character-card" key={index} onClick={handleClick}>
+            <img src={char.image} alt={char.name} className="character-image" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
-export default Pokemon
+
+export default App;
