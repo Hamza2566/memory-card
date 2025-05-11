@@ -27,8 +27,8 @@ function App() {
     try {
       const res = await fetch('https://rickandmortyapi.com/api/character?page=1');
       const json = await res.json();
-      const first20 = json.results.slice(0, 15); // Get only 20 characters
-      get6random(first20); // Pick 6 from them
+      const first20 = json.results.slice(0, 15); 
+      get6random(first20); 
     } catch (err) {
       console.error('Error fetching characters:', err);
     }
@@ -41,19 +41,15 @@ function App() {
  const handleClick = (e) => {
   const clickedName = e.target.alt;
 
-  // If the character was not clicked before
   if (!track.includes(clickedName)) {
-    // Update track and score in one go
     setTrack((prev) => [...prev, clickedName]);
     setScore((prev) => prev + 1);
   } else {
-    // Reset if character was clicked before
     setTrack([]);
     setScore(0);
     sethighScore(score)
   }
 
-  // Refresh with new 6 characters
   fetchCharacters();
 };
 useEffect(() => {
